@@ -19,8 +19,11 @@ const  articleSchema = {
 };
 
 const Article = mongoose.model("Article",articleSchema);
+// ----------------------------------------Request for all Article----------------------------------------------
+app.route("/articles")
 
-app.get("/articles", function(req,res){
+// GET REQUEST
+.get(function(req,res){
   Article.find({},function(err,foundArticles){
     if(err){
       res.send(err);
@@ -28,9 +31,10 @@ app.get("/articles", function(req,res){
       res.send(foundArticles);
     }
   });
-});
+})
 
-app.post("/articles",function(req,res){
+ // POST REQUEST
+.post(function(req,res){
   const newArticle = new Article({
     title:req.body.title,
     content:req.body.content
@@ -39,10 +43,74 @@ app.post("/articles",function(req,res){
     if(err){
       res.send(err);
     }else{
-      res.send("Succesfully added new article");
+      res.send("Succesfully added new article: "+req.body.title);
+    }
+  });
+})
+
+//DELETE REQUEST
+.delete(function(req,res){
+  Article.deleteMany({}, function(err){
+    if(err){
+      res.send(err)
+    }else{
+      res.send("Succesfully delete all the Articles");
     }
   });
 });
+
+// ---------------------------------------------Request for Specific Article---------------------------------
+app.route("/articles/:title")
+.get(function(req,res){
+  Article.findOne({title: req.params.title},function(err,foundArticle){
+    if(err){
+      res.send(err);
+    }else{
+      if(foundArticle){
+        res.send(foundArticle);
+      }else{
+        res.send("Nothing Found!");
+      }
+
+    }
+  });
+})
+.put(function(req,res){
+  Article.update(
+    {title:req.params.title},
+    {title:req.body.title,
+    content: req.body.content},
+    {overwrite:true},
+    function(err){
+      if(err){
+         res.send(err)
+      }else{
+         res.send("Succesfully updated");
+      }
+  })
+})
+.patch(function(req,res){
+  Article.update(
+    {title:req.params.title},
+    {$set:req.body},
+  function(err){
+    if(err){
+      res.send(err)
+    }else{
+      res.send("Succesfully update throught patch request");
+    }
+  })
+})
+.delete(function(req,res){
+  Article.deleteOne({title:req.params.title},function(err){
+    if(err){
+      res.send(err)
+    }else{
+      res.send("Succesfully delete article: "+req.params.title);
+    }
+  });
+});
+
 
 app.listen(3000, function(){
   console.log("server is start on port 3000");
